@@ -1,0 +1,24 @@
+config_version	1.2
+
+snapshot_root	${rsnapshot:directory}/
+
+cmd_cp		/bin/cp
+cmd_rm		/bin/rm
+cmd_rsync	/usr/bin/rsync
+cmd_ssh		/usr/bin/ssh
+cmd_logger	/usr/bin/logger
+cmd_du		/usr/bin/du
+cmd_rsnapshot_diff	/usr/bin/rsnapshot-diff
+
+interval	daily	7
+interval	weekly	4
+
+verbose		2
+loglevel	3
+logfile		${buildout:directory}/var/log/rsnapshot.log
+lockfile	${buildout:directory}/var/run/rsnapshot.pid
+
+rsync_short_args	-a
+rsync_long_args		--delete --numeric-ids
+
+backup	${backup:directory}/	./

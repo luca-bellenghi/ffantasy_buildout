@@ -1,0 +1,5 @@
+# This is a buildout generated file
+# It should be copied in /etc/cron.d, e.g:
+# cp -i ${crontab:output} /etc/cron.d/pgbackup
+# m h dom mon dow   user     command
+00  0  *   *   *    postgres ${backup:output} >> ${buildout:directory}/var/log/backup.log

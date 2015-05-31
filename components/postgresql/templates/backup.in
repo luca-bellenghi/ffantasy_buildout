@@ -1,0 +1,36 @@
+#!/bin/bash
+# This script is public domain. Feel free to use or modify as you like.
+# This script must be run as postgres user
+BZIP2="/bin/bzip2"
+GREP="/bin/grep"
+DUMPALL="${postgresql:location}/bin/pg_dumpall"
+PGDUMP="${postgresql:location}/bin/pg_dump"
+PSQL="${postgresql:location}/bin/psql"
+
+# directory to save backups in, must be rwx by postgres user
+BACKUPDIR="${backup:directory}"
+test -d $BACKUPDIR || mkdir -p $BACKUPDIR
+
+# first dump entire postgres database, including pg_shadow etc.
+$DUMPALL  | $BZIP2 > "$BACKUPDIR/db.out.bz2"
+# next dump globals (roles and tablespaces) only
+$DUMPALL -g | $BZIP2 > "$BACKUPDIR/globals.gz"
+
+# get list of databases in system , exclude the tempate dbs
+DBS=`$PSQL -l | awk '{ print $1}' | grep '^[a-z]' | grep -v template | grep -v postgres`
+
+# now backup the tables
+for DB in $DBS; do
+    $PGDUMP $DB | bzip2 > $BACKUPDIR/$DB.bz2
+done
+
+# rsnapshoting
+RSNAPSHOTLOGDIR="${buildout:directory}/var/log"
+RSNAPSHOTPIDDIR="${buildout:directory}/var/run"
+RSNAPSHOTDIR="${rsnapshot:directory}"
+test -d $RSNAPSHOTDIR || mkdir -p $RSNAPSHOTDIR
+test -d $RSNAPSHOTLOGDIR || mkdir -p $RSNAPSHOTLOGDIR
+test -d $RSNAPSHOTPIDDIR || mkdir -p $RSNAPSHOTPIDDIR
+
+rsnapshot -c ${rsnapshot:output} daily
+rsnapshot -c ${rsnapshot:output} weekly
